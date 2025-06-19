@@ -3,3 +3,6 @@ training:
 
 run:
 	streamlit run run.py
+
+convert:
+	python convert.py

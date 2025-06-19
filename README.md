@@ -37,3 +37,8 @@ make training
 ```
 make run
 ```
+
+## Convert to MLPackage
+```
+make convert
+```
