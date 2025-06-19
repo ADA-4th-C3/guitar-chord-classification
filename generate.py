@@ -19,7 +19,7 @@ def extract_chroma(input_path, noise_gate=0.01):
 def save_chroma_image(chroma, output_path):
     plt.figure(figsize=(4, 4))
     librosa.display.specshow(chroma, y_axis='chroma',
-                             x_axis='time', cmap='coolwarm')
+                             x_axis='time', cmap='gray_r')
     plt.axis('off')
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     plt.savefig(output_path, bbox_inches='tight', pad_inches=0)

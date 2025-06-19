@@ -14,12 +14,13 @@ import io
 MODEL_PATH = 'model/model.h5'  # 학습된 모델 파일 경로
 SAMPLE_RATE = 44100  # 오디오 샘플링 레이트 (generate.py와 동일하게)
 DURATION = 1  # 1초 단위로 음원 분석
-NOISE_GATE = 0.01  # generate.py와 동일한 임계값
 TRAINING_DATA_PATH = 'data/training'
 CLASS_NAMES = sorted([
     folder for folder in os.listdir(TRAINING_DATA_PATH)
     if os.path.isdir(os.path.join(TRAINING_DATA_PATH, folder))
 ])
+CMAP = 'gray_r'  # librosa 색상
+print(CLASS_NAMES)
 
 
 @st.cache_resource
@@ -46,7 +47,8 @@ def preprocess_audio_chunk(audio_chunk, sr, noise_gate):
         return None
 
     y[np.abs(y) < noise_gate] = 0
-    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+    chroma = librosa.feature.chroma_stft(y=y, sr=sr) # chroma shape : (12, 87)
+    # print("Chroma shape:", chroma.shape)
     return chroma
 
 
@@ -59,7 +61,7 @@ def chroma_to_model_input(chroma, target_shape=(128, 128)):
     fig = plt.figure(figsize=(4, 4))
     # librosa.display.specshow를 사용하여 generate.py와 동일한 시각화 생성
     librosa.display.specshow(chroma, y_axis='chroma',
-                             x_axis='time', cmap='coolwarm')
+                             x_axis='time', cmap=CMAP)
     plt.axis('off')
 
     # 이미지를 파일로 저장하는 대신 메모리 버퍼에 저장
@@ -77,10 +79,13 @@ def chroma_to_model_input(chroma, target_shape=(128, 128)):
     return img_array
 
 
-# --- Streamlit UI ---
+ # --- Streamlit UI ---
 st.set_page_config(layout="wide")
 st.title("🎸 실시간 기타 코드 분류")
 st.write(f"{DURATION}초 단위로 마이크 입력을 받아 코드를 예측합니다.")
+
+# 노이즈 게이트 슬라이더
+NOISE_GATE = st.slider("🔊 노이즈 게이트 임계값", min_value=0.0, max_value=0.1, value=0.01, step=0.001)
 
 # 모델 로드
 model = load_keras_model()
@@ -119,7 +124,7 @@ if model:
             sd.wait()  # 녹음이 끝날 때까지 대기
             audio_chunk = audio_chunk.flatten()
 
-            # 2. 오디오 전처리 (generate.py 로직 활용)
+            # 2. 오디오 전처리
             chroma = preprocess_audio_chunk(
                 audio_chunk, sr=SAMPLE_RATE, noise_gate=NOISE_GATE)
 
@@ -155,7 +160,7 @@ if model:
                         st.write("🎵 **입력된 소리의 Chromagram**")
                         fig, ax = plt.subplots(figsize=(5, 4))
                         librosa.display.specshow(
-                            chroma, y_axis='chroma', x_axis='time', ax=ax, cmap='coolwarm')
+                            chroma, y_axis='chroma', x_axis='time', ax=ax, cmap=CMAP)
                         ax.set_title("Real-time Chroma")
                         st.pyplot(fig)
             else:
