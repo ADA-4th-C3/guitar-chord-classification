@@ -26,8 +26,8 @@ def save_chroma_image(chroma, output_path):
     plt.close()
 
 
-def extract_and_save_chroma(input_path, output_path, threshold=0.01):
-    chroma = extract_chroma(input_path, threshold)
+def extract_and_save_chroma(input_path, output_path, noise_gate=0.01):
+    chroma = extract_chroma(input_path, noise_gate)
     if chroma is None:
         return
     save_chroma_image(chroma, output_path)
@@ -47,7 +47,7 @@ def process_audio_to_chroma():
                     output_label_dir, file_name.replace('.wav', '.png'))
 
                 extract_and_save_chroma(
-                    input_file, output_file, threshold=0.01)
+                    input_file, output_file, noise_gate=0.01)
                 print(f"Saved chroma image: {output_file}")
 
 
